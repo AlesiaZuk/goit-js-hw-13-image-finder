@@ -6,7 +6,9 @@ import { alert, error, defaultModules } from '@pnotify/core/dist/PNotify.js';
 import * as PNotifyMobile from '@pnotify/mobile/dist/PNotifyMobile.js';
 import '@pnotify/core/dist/PNotify.css';
 import '@pnotify/core/dist/BrightTheme.css';
+import { defaults } from '@pnotify/core';
 defaultModules.set(PNotifyMobile, {});
+defaults.delay = 3000;
 
 import refs from './refs.js';
 import fetchImages from './apiService';
@@ -17,31 +19,37 @@ const { input, galleryList, loadMoreButton } = refs;
 let page = 1;
 let searchQuery = '';
 
-input.addEventListener('input', debounce(onSearch, 500));
+input.addEventListener('input', debounce(onSearch, 1000));
 galleryList.addEventListener('click', openModal);
 loadMoreButton.addEventListener('click', loadMoreImages);
 
 function onSearch(e) {
   e.preventDefault();
 
-  searchQuery = e.target.value;
+  searchQuery = e.target.value.trim();
   const validatorResult = validator(searchQuery);
+  console.log(validatorResult);
 
   if (searchQuery !== '') {
     if (validatorResult) {
       page = 1;
       fetchImages(searchQuery, page)
         .then(data => {
-          cleanContainerContent();
-          renderImageCard(data);
-          visibility();
+          console.log(data.total);
+          if (data.total !== 0) {
+            cleanContainerContent();
+            renderImageCard(data);
+            visibility();
+          } else {
+            showError();
+          }
         })
         .catch(() => {
           showError();
         });
+    } else {
+      showError();
     }
-  } else {
-    showError();
   }
 }
 
@@ -68,8 +76,14 @@ function openModal(e) {
 function loadMoreImages(e) {
   page += 1;
   fetchImages(searchQuery, page).then(data => {
+    const elem = galleryList.lastElementChild;
+    console.log(elem);
+
     renderImageCard(data);
-    galleryList.scrollIntoView({ block: 'end', behavior: 'smooth', inline: 'end' });
+
+    const scrollElement = elem.nextElementSibling;
+    console.log(scrollElement);
+    scrollElement.scrollIntoView({ block: 'start', behavior: 'smooth' });
   });
 }
 
