@@ -30,10 +30,11 @@ function onSearch(e) {
       imagesApiService
         .fetchImages()
         .then(data => {
+          console.log(data.hits.length);
           if (data.total !== 0) {
             cleanContainerContent();
             renderImageCard(data);
-            visibility();
+            visibility(data);
           } else {
             showError();
           }
@@ -70,6 +71,7 @@ function loadMoreImages() {
   imagesApiService.fetchImages().then(data => {
     const elem = galleryList.lastElementChild;
 
+    visibility(data);
     renderImageCard(data);
 
     const scrollElement = elem.nextElementSibling;
